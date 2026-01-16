@@ -11,7 +11,7 @@ public class DatabaseUser {
     Path path;
     ArrayList<User> usersList;
 
-    DatabaseUser(String pathDatabase){
+    public DatabaseUser(String pathDatabase){
         this.pathDatabase = pathDatabase;
         this.usersList = new ArrayList<>();
     }
@@ -61,6 +61,7 @@ public class DatabaseUser {
         try {
             if(Files.notExists(pathFile)){
                 Files.createDirectories(pathFile.getParent());
+                Files.createFile(pathFile);
             }
 
             return true;
@@ -70,14 +71,20 @@ public class DatabaseUser {
         }
     }
 
-    void getAllUsers() throws Exception{
+    public ArrayList<User> getAllUsers() throws Exception{
         try {
             this.path = Paths.get(this.pathDatabase);
 
             boolean isPath = this.verifyExistFile(this.path);
-            if(!isPath) throw new Exception("Arquivo de banco de usuários não encontrado.");
+            if(!isPath){
+                throw new Exception("Arquivo de banco de usuários não encontrado.");
+            }
 
             String usersDocument = Files.readString(this.path);
+            if(usersDocument.isBlank()){
+                return this.usersList;
+            }
+
             String[] users = usersDocument.split("\n");
 
             // cria uma lista adicionando todas as linhas de dados.
@@ -93,6 +100,8 @@ public class DatabaseUser {
                 this.usersList.get(i).setUsername(user[1]);
                 this.usersList.get(i).setPassword(user[2]);
             }
+
+            return this.usersList;
         } catch(Exception err){
             System.err.println("Erro ao acessar o banco de dados de usuários: " + err.getMessage());
             throw new Exception(err);
@@ -103,7 +112,7 @@ public class DatabaseUser {
         return listUsers.getLast().getId();
     }
 
-    static boolean verifyData(ArrayList<User> listUsers, String username, String password){
+    public static boolean verifyData(ArrayList<User> listUsers, String username, String password){
         if(listUsers.isEmpty() || username.isBlank() || password.isBlank()) return false;
 
         for(User user : listUsers){
