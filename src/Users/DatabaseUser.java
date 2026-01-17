@@ -35,26 +35,28 @@ public class DatabaseUser {
         }
     }
 
-    public void createUser(String username, String password) throws Exception{
+    public User createUser(String username, String password) throws Exception{
         try{
             if(username.isBlank() || password.isBlank()){
                 throw new Exception("Nome de usuário ou senha inválidos.");
             }
 
-            getAllUsers();
+            this.usersList = this.getAllUsers();
             int newId = DatabaseUser.getIdLastUser(this.usersList) + 1;
 
-            this.usersList.add(new User());
-            this.usersList.getLast().setId(newId);
-            this.usersList.getLast().setUsername(username);
-            this.usersList.getLast().setPassword(password);
+            User newUser = new User();
+            newUser.setId(newId);
+            newUser.setUsername(username);
+            newUser.setPassword(password);
 
-            setUser();
+            this.usersList.add(new User());
+            this.setUser();
+
+            return newUser;
         } catch(Exception err){
-            System.out.println("Erro ao criar o seu usuário: " + err.getMessage());
+            System.out.println("Erro ao criar o seu usuário");
             throw new Exception(err);
         }
-
     }
 
     private boolean verifyExistFile(Path pathFile) throws Exception{
@@ -108,7 +110,18 @@ public class DatabaseUser {
         }
     }
 
+    public static User getUser(ArrayList<User> users,String username, String password){
+        for(User user : users){
+            if(user.getUsername().equals(username) && user.getPassword().equals(password)){
+                return user;
+            }
+        }
+
+        return null;
+    }
+
     static int getIdLastUser(ArrayList<User> listUsers){
+        if(listUsers.isEmpty()) return 0;
         return listUsers.getLast().getId();
     }
 
