@@ -48,7 +48,7 @@ public class Main {
                 }
 
                 System.out.println("Bem-vindo de volta!");
-            } else if(haveUser.equalsIgnoreCase("Não")){
+            } else if(haveUser.equalsIgnoreCase("Não") || haveUser.equalsIgnoreCase("Nao")){
                 System.out.println("Por favor, crie um usuário.");
 
                 System.out.println("Digite seu nome de usuário: ");
