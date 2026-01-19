@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Scanner input = new Scanner(System.in);
         String haveUser = "Não";
 
         System.out.println("Bem-vindo ao nosso jogo da forca!");
@@ -19,6 +18,7 @@ public class Main {
 
         // verificação de usuário
         do{
+            Scanner input = new Scanner(System.in);
             System.out.println("Você já possuí um usuário? (Sim/Não)");
             haveUser = input.nextLine();
 
@@ -56,6 +56,14 @@ public class Main {
                 System.out.println("Digite uma senha para o cadastro: ");
                 String password = input.next();
 
+                boolean userExists = DatabaseUser.checkUserExists(usersList, username);
+
+                if(userExists){
+                    System.out.println("Nome de usuário já existe. Por favor, escolha outro nome.");
+                    haveUser = "Não";
+                    continue;
+                }
+
                 yourUser = users.createUser(username, password);
                 System.out.println("Usuário criado com sucesso! Agora você pode jogar.");
 
@@ -67,20 +75,28 @@ public class Main {
 
         } while(!haveUser.equalsIgnoreCase("Sim"));
 
+        Scanner input = new Scanner(System.in);
         System.out.println(yourUser.getUsername() + ", deseja jogar uma partida? (Sim/Não)");
         String wantPlay = input.nextLine();
 
-        do{
-            System.out.println("Digite a palavra para ser adivinhada:");
-            String secretWord = input.nextLine();
-            System.out.println("Digite uma dica para a palavra:");
-            String tip = input.nextLine();
+        if(wantPlay.equalsIgnoreCase("Sim")){
+            ForcaGame game = new ForcaGame(yourUser);
 
-            Word word = new Word(secretWord, tip);
-            ForcaGame game = new ForcaGame(word, yourUser);
+            do{
+                System.out.println("Digite a palavra para ser adivinhada:");
+                String secretWord = input.nextLine();
+                System.out.println("Digite uma dica para a palavra:");
+                String tip = input.nextLine();
 
-            System.out.println("Você deseja jogar novamente? (Sim/Não)");
-            wantPlay = input.nextLine();
-        } while(wantPlay.equalsIgnoreCase("Sim"));
+                Word word = new Word(secretWord, tip);
+                game.setSecretWord(word);
+                game.initGame();
+
+                System.out.println("Você deseja jogar novamente? (Sim/Não)");
+                wantPlay = input.nextLine();
+            } while(wantPlay.equalsIgnoreCase("Sim"));
+        }
+
+        System.out.println("Obrigado por visitar! Até a próxima.");
     }
 }
