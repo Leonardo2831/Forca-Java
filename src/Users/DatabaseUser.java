@@ -11,9 +11,9 @@ public class DatabaseUser {
     Path path;
     ArrayList<User> usersList;
 
-    public DatabaseUser(String pathDatabase){
+    public DatabaseUser(String pathDatabase) throws Exception {
         this.pathDatabase = pathDatabase;
-        this.usersList = new ArrayList<>();
+        this.usersList = getAllUsers();
     }
 
     private void setUser() throws Exception {
@@ -23,14 +23,53 @@ public class DatabaseUser {
 
             StringBuilder usersDataString = new StringBuilder();
 
-            for(User user : this.usersList){
-                String userData = user.getId() + ";" + user.getUsername() + ";" + user.getPassword() + "\n";
-                usersDataString.append(userData);
+            for(User user : this.usersList) {
+                String userInfo = user.getId() + ";" + user.getUsername() + ";" + user.getPassword() + "\n";
+                usersDataString.append(userInfo);
             }
 
-            Files.writeString(this.path, usersDataString);
+            Files.writeString(this.path, usersDataString.toString());
         } catch(Exception err){
             System.err.println("Erro ao salvar os dados do usuário no banco de dados: " + err.getMessage());
+            throw new Exception(err);
+        }
+    }
+
+    public ArrayList<User> getAllUsers() throws Exception{
+        try {
+            this.path = Paths.get(this.pathDatabase);
+
+            boolean isPath = this.verifyExistFile(this.path);
+            if(!isPath){
+                throw new Exception("Arquivo de banco de usuários não encontrado.");
+            }
+
+            String usersDocument = Files.readString(this.path);
+            if(usersDocument.isBlank()){
+                return new ArrayList<>();
+            }
+
+            String[] users = usersDocument.split("\n");
+
+            // cria uma lista adicionando todas as linhas de dados.
+            ArrayList<String> usersData = new ArrayList<>(Arrays.asList(users));
+
+            ArrayList<User> usersList = new ArrayList<>();
+            for (String userInfo : usersData) {
+                String[] userValues = userInfo.split(";");
+
+                // setando valores do usuário.
+                User newUser = new User();
+                newUser.setId(Integer.parseInt(userValues[0]));
+                newUser.setUsername(userValues[1]);
+                newUser.setPassword(userValues[2]);
+
+                usersList.add(newUser);
+            }
+
+            return usersList;
+        } catch(Exception err){
+            System.err.println("Erro ao acessar o banco de dados de usuários: " + err.getMessage());
             throw new Exception(err);
         }
     }
@@ -49,7 +88,7 @@ public class DatabaseUser {
             newUser.setUsername(username);
             newUser.setPassword(password);
 
-            this.usersList.add(new User());
+            this.usersList.add(newUser);
             this.setUser();
 
             return newUser;
@@ -73,43 +112,6 @@ public class DatabaseUser {
         }
     }
 
-    public ArrayList<User> getAllUsers() throws Exception{
-        try {
-            this.path = Paths.get(this.pathDatabase);
-
-            boolean isPath = this.verifyExistFile(this.path);
-            if(!isPath){
-                throw new Exception("Arquivo de banco de usuários não encontrado.");
-            }
-
-            String usersDocument = Files.readString(this.path);
-            if(usersDocument.isBlank()){
-                return this.usersList;
-            }
-
-            String[] users = usersDocument.split("\n");
-
-            // cria uma lista adicionando todas as linhas de dados.
-            ArrayList<String> usersData = new ArrayList<>(Arrays.asList(users));
-
-            for(int i = 0; i < usersData.size(); i++){
-                String[] user = usersData.get(i).split(";");
-
-                this.usersList.add(new User());
-
-                // setando valores do usuário.
-                this.usersList.get(i).setId(Integer.parseInt(user[0]));
-                this.usersList.get(i).setUsername(user[1]);
-                this.usersList.get(i).setPassword(user[2]);
-            }
-
-            return this.usersList;
-        } catch(Exception err){
-            System.err.println("Erro ao acessar o banco de dados de usuários: " + err.getMessage());
-            throw new Exception(err);
-        }
-    }
-
     public static User getUser(ArrayList<User> users,String username, String password){
         for(User user : users){
             if(user.getUsername().equals(username) && user.getPassword().equals(password)){
@@ -123,6 +125,16 @@ public class DatabaseUser {
     static int getIdLastUser(ArrayList<User> listUsers){
         if(listUsers.isEmpty()) return 0;
         return listUsers.getLast().getId();
+    }
+
+    public static boolean checkUserExists(ArrayList<User> listUsers, String username){
+        for(User user : listUsers){
+            if(user.getUsername().equalsIgnoreCase(username)){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static boolean verifyData(ArrayList<User> listUsers, String username, String password){
